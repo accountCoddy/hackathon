@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Участники Новогоднего ИТ-Хакатона 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Градиентный фон */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* Анимация для карточек */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        /* Эффект стекла (glassmorphism) */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Градиентный текст */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Эффект свечения для карточек */
+        .card-glow:hover {
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Логотип placeholder стиль */
+        .logo-placeholder {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
+    <!-- Шапка с логотипами -->
+    <header class="gradient-bg shadow-2xl sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-3">
+                <!-- Логотипы и заголовок в одну линию на больших экранах -->
+                <div class="flex items-center gap-4 sm:gap-6">
+                   
+                    
+                    <!-- Заголовок -->
+                    <div class="text-center lg:text-left">
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight leading-tight">
+                            Новогодний ИТ-Хакатон 2025
+                        </h1>
+                        <p class="text-white/90 text-sm sm:text-base font-medium">Участники и команды</p>
+                    </div>
+                    
+                     <!-- Логотип 1 -->
+                    <img src="logo1.png" class="h-12 w-12 sm:h-20 sm:w-20 object-contain" alt="Логотип 1">
+                    
+                    <!-- Логотип 2 -->
+                    <img src="logo2.png" class="h-12 w-12 sm:h-20 sm:w-20 object-contain" alt="Логотип 2">
+                </div>
+                
+                <!-- Навигация -->
+                <nav id="nav-menu" class="grid grid-rows-4 sm:grid-rows-3 lg:grid-rows-2 grid-flow-col gap-2 auto-cols-max justify-center lg:justify-end overflow-x-auto"></nav>
+
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 sm:py-12">
+        <!-- Статус загрузки -->
+        <div id="loading-status" class="text-center p-12 bg-white rounded-3xl shadow-2xl">
+            <div id="spinner" class="animate-spin inline-block w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full mb-6"></div>
+            <p class="text-2xl text-gray-700 font-semibold">Загрузка данных...</p>
+            <p class="text-gray-500 mt-2">Получаем актуальную информацию о командах</p>
+        </div>
+
+        <!-- Контейнер для команд -->
+        <div id="participants-container" class="hidden"></div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="bg-gradient-to-r from-gray-900 via-purple-900 to-gray-900 text-white mt-16">
+        <div class="container mx-auto px-4 py-8">
+            <div class="text-center">
+                <p class="text-lg font-semibold mb-2">Новогодний ИТ-Хакатон 2025</p>
+                <p class="text-sm text-gray-300">Все права защищены &copy; 2025</p>
+                <p class="text-xs text-gray-400 mt-3">
+                    Данные загружаются в реальном времени из Google Таблицы
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const SHEET_ID = '1BpUqaVVjmY4HQTmLan6jmBZlsbkDk7Y4g6PF6d7HpPs';
+        const GID = '1764602931';
+        const GOOGLE_SHEET_JSON_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&tq=select A, B, C`;
+
+        const DIRECTION_INDEX_JSON = 0;
+        const TEAM_NUMBER_INDEX_JSON = 1;
+        const TEAM_MEMBERS_INDEX_JSON = 2;
+
+        const container = document.getElementById('participants-container');
+        const navMenu = document.getElementById('nav-menu');
+        const loadingStatus = document.getElementById('loading-status');
+
+        function cleanMemberName(memberString) {
+            if (!memberString) return null;
+            let cleaned = memberString.trim();
+            cleaned = cleaned.replace(/\s+/g, ' ').replace(/,$/, '').trim();
+            return cleaned.length > 0 ? cleaned : null;
+        }
+
+        function parseGoogleJson(jsonText) {
+            const jsonString = jsonText.substring(jsonText.indexOf('{'), jsonText.lastIndexOf('}') + 1);
+            const data = JSON.parse(jsonString);
+            
+            if (!data.table || !data.table.rows) return {};
+
+            const rows = data.table.rows;
+            const teamsGroupedByDirection = {};
+
+            rows.forEach(row => {
+                const cellData = row.c.map(cell => (cell && cell.v) ? cell.v : '');
+                
+                if (cellData.length < 3) return;
+
+                const direction = cellData[DIRECTION_INDEX_JSON].trim();
+                const teamNumberRaw = cellData[TEAM_NUMBER_INDEX_JSON];
+                const membersString = cellData[TEAM_MEMBERS_INDEX_JSON] || '';
+
+                const teamNumber = parseInt(teamNumberRaw);
+                if (!direction || isNaN(teamNumber)) return;
+
+                const members = membersString.split(',')
+                    .map(name => cleanMemberName(name))
+                    .filter(name => name !== null);
+
+                if (direction && members.length > 0) {
+                    if (!teamsGroupedByDirection[direction]) {
+                        teamsGroupedByDirection[direction] = [];
+                    }
+                    teamsGroupedByDirection[direction].push({
+                        teamNumber: teamNumber,
+                        members: members
+                    });
+                }
+            });
+
+            return teamsGroupedByDirection;
+        }
+
+        function renderParticipants(structuredData) {
+            let html = '';
+            let navHtml = '';
+
+            const colors = [
+                'from-purple-500 to-indigo-600',
+                'from-pink-500 to-rose-600',
+                'from-blue-500 to-cyan-600',
+                'from-green-500 to-emerald-600',
+                'from-orange-500 to-amber-600',
+                'from-red-500 to-pink-600'
+            ];
+
+            let colorIndex = 0;
+
+            for (const direction in structuredData) {
+                const teams = structuredData[direction].sort((a, b) => a.teamNumber - b.teamNumber);
+                const slug = direction.replace(/\s/g, '-').replace(/[()]/g, '').toLowerCase();
+                const gradientColor = colors[colorIndex % colors.length];
+                colorIndex++;
+
+                navHtml += `<a href="#${slug}" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition duration-300 text-sm font-medium whitespace-nowrap backdrop-blur-sm">${direction}</a>`;
+
+                html += `
+                    <section id="${slug}" class="mb-16 pt-8">
+                        <div class="bg-gradient-to-r ${gradientColor} rounded-3xl p-6 sm:p-8 mb-8 shadow-2xl">
+                            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white text-center">
+                                ${direction}
+                            </h2>
+                            <div class="w-24 h-1 bg-white/50 mx-auto mt-4 rounded-full"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                `;
+
+                teams.forEach((team, index) => {
+                    const membersList = team.members.map(member => `
+                        <li class="flex items-start text-gray-700 group">
+                            <svg class="w-5 h-5 mr-3 text-purple-500 flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="leading-relaxed">${member}</span>
+                        </li>
+                    `).join('');
+
+                    html += `
+                        <div class="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 card-glow fade-in-up overflow-hidden" style="animation-delay: ${index * 0.1}s">
+                            <div class="bg-gradient-to-r ${gradientColor} p-4">
+                                <h3 class="text-2xl font-bold text-white flex items-center justify-center">
+                                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    Команда №${team.teamNumber}
+                                </h3>
+                            </div>
+                            <div class="p-6">
+                                <ul class="space-y-3">
+                                    ${membersList}
+                                </ul>
+                                <div class="mt-4 pt-4 border-t border-gray-200">
+                                    <p class="text-sm text-gray-500 text-center font-medium">
+                                        Участников: ${team.members.length}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </section>
+                `;
+            }
+
+            container.innerHTML = html;
+            navMenu.innerHTML = navHtml;
+        }
+
+        async function loadAndRender() {
+            try {
+                const response = await fetch(GOOGLE_SHEET_JSON_URL);
+                if (!response.ok) {
+                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                }
+                const jsonText = await response.text();
+                const structuredData = parseGoogleJson(jsonText);
+                
+                if (Object.keys(structuredData).length === 0) {
+                    throw new Error("Не удалось извлечь команды. Проверьте форматирование данных.");
+                }
+
+                loadingStatus.classList.add('hidden');
+                container.classList.remove('hidden');
+                renderParticipants(structuredData);
+            } catch (error) {
+                console.error("Ошибка загрузки или парсинга данных:", error);
+                loadingStatus.innerHTML = `
+                    <div class="text-center">
+                        <svg class="w-20 h-20 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-2xl text-red-600 font-bold mb-2">Ошибка загрузки данных</p>
+                        <p class="text-gray-600">Не удалось получить информацию из таблицы</p>
+                        <p class="text-sm text-gray-500 mt-4">Проверьте доступность Google Таблицы</p>
+                    </div>
+                `;
+                document.getElementById('spinner').classList.add('hidden');
+                loadingStatus.classList.remove('hidden');
+                container.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAndRender);
+    </script>
+</body>
+</html>
